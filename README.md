@@ -1,8 +1,14 @@
-# HOW TO LINK AND RUN CODE
-------
-## 1 LINK ALL HPP/CPP FILES INTO AN EXECUTABLE FILE
-- command: g++ main.cpp symbols.cpp -o main.exe
-------
-## 2 RUN THE EXECUTABLE FILE 
-- comman: ./main.exe
-------
+# How to Run the Program
+
+### 1. Using the Batch File
+Simply run the following command in your terminal or command prompt:
+
+```bash
+./run.bat
+```
+
+### 2. Manual Compilation
+Use the following commands:
+
+- g++ main.cpp symbols.cpp -o main.exe
+- ./main.exe
