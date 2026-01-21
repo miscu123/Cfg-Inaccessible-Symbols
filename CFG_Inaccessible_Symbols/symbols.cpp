@@ -65,7 +65,7 @@ void init_VT(std::string VT[26])
 }
 
 // verify if symbol is in VN or VT
-bool simbol_valid(const std::string &s, std::string VN[26], std::string VT[26])
+bool valid_symbol(const std::string &s, std::string VN[26], std::string VT[26])
 {
     for (int i = 0; i < 26; i++)
     {
@@ -115,7 +115,7 @@ void init_P(std::string VN[26], std::string VT[26], std::map<std::string, std::v
         for (char c : prod)
         {
             std::string s(1, c);
-            if (!simbol_valid(s, VN, VT))
+            if (!valid_symbol(s, VN, VT))
             {
                 valid = false;
                 break;
@@ -130,17 +130,65 @@ void init_P(std::string VN[26], std::string VT[26], std::map<std::string, std::v
     }
 }
 
-// function to calculate VN2
-void result_VN(std::string VN[26], std::string H[60], std::string VN2[26])
+void calculate_H(std::string VN[26], std::string VT[26], std::map<std::string, std::vector<std::string>> &P, std::string H[60])
 {
+    // we will calculate H using VN, VT, P
+}
+
+// function to calculate VN2
+void result_VN(std::string VN[26], std::string H[60], std::string VN2[26], std::string inacc_syms[60], uint8_t &sym_idx)
+{
+    // VN2 == VN intersected with H
+    uint8_t idx = 0;
+
+    for (uint8_t i = 0; i < 26; i++)
+    {
+        if (VN[i].empty())
+            continue;
+
+        bool found = false;
+        for (uint8_t j = 0; j < 60; j++)
+        {
+            if (VN[i] == H[j])
+            {
+                found = true;
+                VN2[idx++] = VN[i];
+                break;
+            }
+        }
+        if (!found)
+            inacc_syms[sym_idx++] = VN[i];
+    }
 }
 
 // function to calculate VT2
-void result_VT(std::string VT[26], std::string H[60], std::string VT2[26])
+void result_VT(std::string VT[26], std::string H[60], std::string VT2[26], std::string inacc_syms[60], uint8_t &sym_idx)
 {
+    // VT2 == VT intersected with H
+    uint8_t idx = 0;
+
+    for (uint8_t i = 0; i < 26; i++)
+    {
+        if (VT[i].empty())
+            continue;
+
+        bool found = false;
+        for (uint8_t j = 0; j < 60; j++)
+        {
+            if (VT[i] == H[j])
+            {
+                found = true;
+                VT2[idx++] = VT[i];
+                break;
+            }
+        }
+        if (!found)
+            inacc_syms[sym_idx++] = VT[i];
+    }
 }
 
 // function to calculate P2
 void result_P(std::map<std::string, std::vector<std::string>> &P, std::string H[60], std::map<std::string, std::vector<std::string>> &P2)
 {
+    // P2 == all prods that do not contain inaccessible symbols
 }
