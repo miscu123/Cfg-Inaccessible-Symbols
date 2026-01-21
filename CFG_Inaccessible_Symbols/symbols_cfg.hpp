@@ -10,6 +10,7 @@
 #include <cctype>
 #include <vector>
 #include <map>
+#include <set>
 
 void init_VN(std::string VN[26]);
 void init_VT(std::string VT[26]);

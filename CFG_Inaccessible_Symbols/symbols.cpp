@@ -132,7 +132,98 @@ void init_P(std::string VN[26], std::string VT[26], std::map<std::string, std::v
 
 void calculate_H(std::string VN[26], std::string VT[26], std::map<std::string, std::vector<std::string>> &P, std::string H[60])
 {
-    // we will calculate H using VN, VT, P
+    // we calculate H using VN, VT & P
+    // find start symbol (first VN)
+    std::string S = "";
+    for (int i = 0; i < 26; i++)
+    {
+        if (!VN[i].empty())
+        {
+            S = VN[i];
+            break;
+        }
+    }
+
+    if (S.empty())
+    {
+        std::cout << "Error! No start symbol found!" << std::endl;
+        return;
+    }
+
+    // init: i = 0, H0 = {S}
+    std::set<std::string> H_prev;
+    std::set<std::string> H_curr;
+    H_curr.insert(S);
+    int i = 0;
+
+    std::cout << "\ni = " << i << std::endl;
+    std::cout << "H" << i << " = { " << S << " }" << std::endl;
+
+    // repeat until Hi = Hi+1
+    bool changed = true;
+    while (changed)
+    {
+        i++;
+        H_prev = H_curr;
+
+        std::cout << "\ni = " << i << std::endl;
+        std::cout << "H" << i - 1 << " = { ";
+        for (const auto &sym : H_prev)
+        {
+            std::cout << sym << " ";
+        }
+        std::cout << "}" << std::endl;
+
+        // Hi+1 = Hi ∪ {y | X → vyw ∈ P & X ∈ Hi}
+        for (const auto &pair : P)
+        {
+            std::string X = pair.first;
+
+            // if X is in H_curr
+            if (H_curr.find(X) != H_curr.end())
+            {
+                // for every prod
+                for (const auto &production : pair.second)
+                {
+                    // add symbols from P in H
+                    for (char c : production)
+                    {
+                        std::string symbol(1, c);
+                        H_curr.insert(symbol);
+                    }
+                }
+            }
+        }
+
+        // show new symbols
+        std::cout << "H" << i << " = { ";
+        for (const auto &sym : H_curr)
+        {
+            std::cout << sym << " ";
+        }
+        std::cout << "}" << std::endl;
+
+        // we verify if Hi = Hi-1
+        if (H_curr == H_prev)
+        {
+            changed = false;
+            std::cout << "\nCondition met: H" << i << " = H" << i - 1 << std::endl;
+        }
+    }
+
+    // print out the result
+    std::cout << "H = { ";
+    int idx = 0;
+    for (const auto &symbol : H_curr)
+    {
+        std::cout << symbol << " ";
+        if (idx < 60)
+        {
+            H[idx] = symbol;
+            idx++;
+        }
+    }
+    std::cout << "}" << std::endl;
 }
 
 // function to calculate VN2
