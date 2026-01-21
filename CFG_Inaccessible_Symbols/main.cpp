@@ -3,5 +3,5 @@
 int main()
 {
     // interface and code here
-    printf("Hi!");
+    std::cout << "Hi!" << std::endl;
 }
