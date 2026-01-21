@@ -9,6 +9,9 @@ Simply run the following command in your terminal or command prompt:
 
 ### 2. Manual Compilation
 Use the following commands:
-
-- g++ main.cpp symbols.cpp -o main.exe
-- ./main.exe
+```bash
+g++ main.cpp symbols.cpp -o main.exe
+```
+```bash
+./main.exe
+```
