@@ -1,7 +1,7 @@
 #ifndef SYMBOLS_CFG_HPP
 #define SYMBOLS_CFG_HPP
 
-// #define λ 0 --> if needed
+#define lambda λ
 
 #include <cstdint>
 #include <string>
@@ -19,7 +19,6 @@ void init_P(std::string VN[26], std::string VT[26], std::map<std::string, std::v
 void calculate_H(std::string VN[26], std::string VT[26], std::map<std::string, std::vector<std::string>> &P, std::string H[60]);
 void result_VN(std::string VN[26], std::string H[60], std::string VN2[26], std::string inacc_syms[60], uint8_t &sym_idx);
 void result_VT(std::string VT[26], std::string H[60], std::string VT2[26], std::string inacc_syms[60], uint8_t &sym_idx);
-void result_P(std::map<std::string, std::vector<std::string>> &P, std::string H[60], std::map<std::string, std::vector<std::string>> &P2);
 
 struct Symbols
 {

@@ -277,9 +277,3 @@ void result_VT(std::string VT[26], std::string H[60], std::string VT2[26], std::
             inacc_syms[sym_idx++] = VT[i];
     }
 }
-
-// function to calculate P2
-void result_P(std::map<std::string, std::vector<std::string>> &P, std::string H[60], std::map<std::string, std::vector<std::string>> &P2)
-{
-    // P2 == all prods that do not contain inaccessible symbols
-}
