@@ -277,3 +277,62 @@ void result_VT(std::string VT[26], std::string H[60], std::string VT2[26], std::
             inacc_syms[sym_idx++] = VT[i];
     }
 }
+
+void clear_arr(std::string arr[], int n)
+{
+    for (int i = 0; i < n; i++)
+        arr[i].clear();
+}
+
+void print_arr(const std::string arr[], int n, const std::string &label)
+{
+    std::cout << label << ": { ";
+    bool any = false;
+    for (int i = 0; i < n; i++)
+    {
+        if (!arr[i].empty())
+        {
+            std::cout << arr[i] << " ";
+            any = true;
+        }
+    }
+    if (!any)
+        std::cout << "(empty) ";
+    std::cout << "}\n";
+}
+
+void print_P(const std::map<std::string, std::vector<std::string>> &P)
+{
+    std::cout << "P (productions):\n";
+    if (P.empty())
+    {
+        std::cout << "  (empty)\n";
+        return;
+    }
+
+    for (const auto &kv : P)
+    {
+        std::cout << "  " << kv.first << " -> ";
+        for (size_t i = 0; i < kv.second.size(); i++)
+        {
+            std::cout << kv.second[i];
+            if (i + 1 < kv.second.size())
+                std::cout << " | ";
+        }
+        std::cout << "\n";
+    }
+}
+
+void compute_all(Symbols &sym)
+{
+    clear_arr(sym.H, 60);
+    clear_arr(sym.VN2, 26);
+    clear_arr(sym.VT2, 26);
+    clear_arr(sym.inacc_syms, 60);
+    sym.sym_idx = 0;
+
+    calculate_H(sym.VN, sym.VT, sym.P, sym.H);
+
+    result_VN(sym.VN, sym.H, sym.VN2, sym.inacc_syms, sym.sym_idx);
+    result_VT(sym.VT, sym.H, sym.VT2, sym.inacc_syms, sym.sym_idx);
+}

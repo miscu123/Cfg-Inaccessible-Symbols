@@ -1,8 +1,6 @@
 #ifndef SYMBOLS_CFG_HPP
 #define SYMBOLS_CFG_HPP
 
-#define lambda λ
-
 #include <cstdint>
 #include <string>
 #include <stdio.h>
@@ -12,6 +10,8 @@
 #include <map>
 #include <set>
 
+struct Symbols;
+
 void init_VN(std::string VN[26]);
 void init_VT(std::string VT[26]);
 bool valid_symbol(const std::string &s, std::string VN[26], std::string VT[26]);
@@ -19,6 +19,10 @@ void init_P(std::string VN[26], std::string VT[26], std::map<std::string, std::v
 void calculate_H(std::string VN[26], std::string VT[26], std::map<std::string, std::vector<std::string>> &P, std::string H[60]);
 void result_VN(std::string VN[26], std::string H[60], std::string VN2[26], std::string inacc_syms[60], uint8_t &sym_idx);
 void result_VT(std::string VT[26], std::string H[60], std::string VT2[26], std::string inacc_syms[60], uint8_t &sym_idx);
+void clear_arr(std::string arr[], int n);
+void print_arr(const std::string arr[], int n, const std::string &label);
+void print_P(const std::map<std::string, std::vector<std::string>> &P);
+void compute_all(Symbols &sym);
 
 struct Symbols
 {
@@ -38,6 +42,7 @@ struct Symbols
     Symbols()
     {
         sym_idx = 0;
+        clear_arr(inacc_syms, 60);
     }
 };
 
