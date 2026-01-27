@@ -1,5 +1,33 @@
 #include "symbols_cfg.hpp"
 
+bool is_terminal(char c) // MODIFICAT
+{
+    return islower(c) || c == '(' || c == ')' ||
+           c == '+' || c == '*' || c == '-';
+}
+
+int get_vt_index(char c)
+{
+    if (islower(c))
+        return c - 'a';
+
+    switch (c)
+    {
+    case '(':
+        return 26;
+    case ')':
+        return 27;
+    case '+':
+        return 28;
+    case '*':
+        return 29;
+    case '-':
+        return 30;
+    default:
+        return -1;
+    }
+}
+
 // function to add all VN variables
 void init_VN(std::string VN[26])
 {
@@ -30,6 +58,8 @@ void init_VN(std::string VN[26])
             break;
         }
     }
+
+    std::cin.sync();
 }
 
 // function to add all VT variables
@@ -37,19 +67,21 @@ void init_VT(std::string VT[26])
 {
     char val;
     uint8_t idx = 0;
-    uint8_t freq_list[26] = {};
+    uint8_t freq_list[31] = {};
 
-    std::cout << "Enter a VT symbol: ";
+    std::cout << "Enter VT symbols: ";
     while (idx < 26)
     {
         std::cin >> val;
 
-        if (isalpha(val) && islower(val))
+        if (is_terminal(val))
         {
-            if (freq_list[val - 'a'] == 0)
+            int freq_idx = get_vt_index(val);
+
+            if (freq_list[freq_idx] == 0)
             {
-                VT[idx] = std::string(1, val); // convert char to string
-                freq_list[val - 'a']++;
+                VT[idx] = std::string(1, val);
+                freq_list[freq_idx]++;
                 idx++;
             }
             else
@@ -62,6 +94,8 @@ void init_VT(std::string VT[26])
             break;
         }
     }
+
+    std::cin.sync();
 }
 
 // verify if symbol is in VN or VT
@@ -76,7 +110,8 @@ bool valid_symbol(const std::string &s, std::string VN[26], std::string VT[26])
 }
 
 // function to add all P variables
-void init_P(std::string VN[26], std::string VT[26], std::map<std::string, std::vector<std::string>> &P)
+void init_P(std::string VN[26], std::string VT[26],
+            std::map<std::string, std::vector<std::string>> &P)
 {
     while (true)
     {
@@ -92,15 +127,10 @@ void init_P(std::string VN[26], std::string VT[26], std::map<std::string, std::v
         std::cin >> vn;
 
         bool vn_found = false;
-
         for (int i = 0; i < 26; i++)
-        {
             if (VN[i] == vn)
-            {
                 vn_found = true;
-                break;
-            }
-        }
+
         if (!vn_found)
         {
             std::cout << "VN is wrong.\n";
@@ -110,6 +140,12 @@ void init_P(std::string VN[26], std::string VT[26], std::map<std::string, std::v
         std::cout << vn << "--> ";
         std::string prod;
         std::cin >> prod;
+
+        if (prod == "λ" || prod == "lambda")
+        {
+            P[vn].push_back("λ");
+            continue;
+        }
 
         bool valid = true;
         for (char c : prod)
@@ -122,108 +158,61 @@ void init_P(std::string VN[26], std::string VT[26], std::map<std::string, std::v
             }
         }
         if (!valid)
-        {
-            continue; // add a new prod because this one is not valid
-        }
+            continue;
 
         P[vn].push_back(prod);
     }
 }
 
-void calculate_H(std::string VN[26], std::string VT[26], std::map<std::string, std::vector<std::string>> &P, std::string H[60])
+void calculate_H(std::string VN[26], std::string VT[26],
+                 std::map<std::string, std::vector<std::string>> &P,
+                 std::string H[60],
+                 const std::string &start_symbol)
 {
-    // we calculate H using VN, VT & P
-    // find start symbol (first VN)
-    std::string S = "";
-    for (int i = 0; i < 26; i++)
-    {
-        if (!VN[i].empty())
-        {
-            S = VN[i];
-            break;
-        }
-    }
+    std::string S = start_symbol;
 
     if (S.empty())
     {
-        std::cout << "Error! No start symbol found!" << std::endl;
+        std::cout << "Error! No start symbol found!\n";
         return;
     }
 
-    // init: i = 0, H0 = {S}
     std::set<std::string> H_prev;
     std::set<std::string> H_curr;
     H_curr.insert(S);
     int i = 0;
 
-    std::cout << "\ni = " << i << std::endl;
-    std::cout << "H" << i << " = { " << S << " }" << std::endl;
-
-    // repeat until Hi = Hi+1
     bool changed = true;
     while (changed)
     {
         i++;
         H_prev = H_curr;
 
-        std::cout << "\ni = " << i << std::endl;
-        std::cout << "H" << i - 1 << " = { ";
-        for (const auto &sym : H_prev)
-        {
-            std::cout << sym << " ";
-        }
-        std::cout << "}" << std::endl;
-
-        // Hi+1 = Hi ∪ {y | X → vyw ∈ P & X ∈ Hi}
         for (const auto &pair : P)
         {
             std::string X = pair.first;
 
-            // if X is in H_curr
             if (H_curr.find(X) != H_curr.end())
             {
-                // for every prod
                 for (const auto &production : pair.second)
                 {
-                    // add symbols from P in H
+                    if (production == "λ")
+                        continue;
+
                     for (char c : production)
-                    {
-                        std::string symbol(1, c);
-                        H_curr.insert(symbol);
-                    }
+                        H_curr.insert(std::string(1, c));
                 }
             }
         }
 
-        // show new symbols
-        std::cout << "H" << i << " = { ";
-        for (const auto &sym : H_curr)
-        {
-            std::cout << sym << " ";
-        }
-        std::cout << "}" << std::endl;
-
-        // we verify if Hi = Hi-1
         if (H_curr == H_prev)
-        {
             changed = false;
-            std::cout << "\nCondition met: H" << i << " = H" << i - 1 << std::endl;
-        }
     }
 
-    // print out the result
-    std::cout << "H = { ";
     int idx = 0;
     for (const auto &symbol : H_curr)
-    {
-        std::cout << symbol << " ";
         if (idx < 60)
-        {
-            H[idx] = symbol;
-            idx++;
-        }
-    }
-    std::cout << "}" << std::endl;
+            H[idx++] = symbol;
 }
 
 // function to calculate VN2
@@ -305,22 +294,16 @@ void print_P(const std::map<std::string, std::vector<std::string>> &P)
 {
     std::cout << "P (productions):\n";
     if (P.empty())
-    {
-        std::cout << "  (empty)\n";
         return;
-    }
 
     for (const auto &kv : P)
     {
-        std::cout << "  " << kv.first << " -> ";
-        for (size_t i = 0; i < kv.second.size(); i++)
+        for (const auto &prod : kv.second)
         {
-            std::cout << kv.second[i];
-            if (i + 1 < kv.second.size())
-                std::cout << " | ";
+            std::cout << kv.first << "->" << prod << "$";
         }
-        std::cout << "\n";
     }
+    std::cout << "&";
 }
 
 void compute_all(Symbols &sym)
@@ -331,7 +314,7 @@ void compute_all(Symbols &sym)
     clear_arr(sym.inacc_syms, 60);
     sym.sym_idx = 0;
 
-    calculate_H(sym.VN, sym.VT, sym.P, sym.H);
+    calculate_H(sym.VN, sym.VT, sym.P, sym.H, sym.start_symbol);
 
     result_VN(sym.VN, sym.H, sym.VN2, sym.inacc_syms, sym.sym_idx);
     result_VT(sym.VT, sym.H, sym.VT2, sym.inacc_syms, sym.sym_idx);

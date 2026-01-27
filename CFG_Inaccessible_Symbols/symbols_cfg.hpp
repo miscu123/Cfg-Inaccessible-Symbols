@@ -31,6 +31,7 @@ struct Symbols
     std::string VN[26];
     std::string VT[26];
     std::string H[60];
+    std::string start_symbol;
 
     // the result lists
     std::map<std::string, std::vector<std::string>> P2;

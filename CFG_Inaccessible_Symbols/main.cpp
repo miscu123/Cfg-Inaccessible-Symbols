@@ -8,6 +8,7 @@ int main()
     std::cout << "=== STEP 1: Initialize VN (non-terminals) ===\n";
     std::cout << "Enter VN (uppercase). Stop with an invalid character (e.g., 0).\n";
     init_VN(sym.VN);
+    sym.start_symbol = sym.VN[0];
 
     std::cout << "\n=== STEP 2: Initialize VT (terminals) ===\n";
     std::cout << "Enter VT (lowercase). Stop with an invalid character (e.g., 0).\n";
