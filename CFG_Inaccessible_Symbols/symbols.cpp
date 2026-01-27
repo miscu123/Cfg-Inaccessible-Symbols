@@ -300,7 +300,7 @@ void print_P(const std::map<std::string, std::vector<std::string>> &P)
     {
         for (const auto &prod : kv.second)
         {
-            std::cout << kv.first << "->" << prod << "$";
+            std::cout << kv.first << "->" << prod << " $ ";
         }
     }
     std::cout << "&";
@@ -318,4 +318,200 @@ void compute_all(Symbols &sym)
 
     result_VN(sym.VN, sym.H, sym.VN2, sym.inacc_syms, sym.sym_idx);
     result_VT(sym.VT, sym.H, sym.VT2, sym.inacc_syms, sym.sym_idx);
+}
+
+std::string trim(std::string s)
+{
+    auto notSpace = [](unsigned char c)
+    { return !std::isspace(c); };
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), notSpace));
+    s.erase(std::find_if(s.rbegin(), s.rend(), notSpace).base(), s.end());
+    return s;
+}
+
+bool add_unique_symbol(std::string arr[26], const std::string &sym)
+{
+    if (sym.size() != 1)
+        return false;
+
+    for (int i = 0; i < 26; i++)
+        if (arr[i] == sym)
+            return true;
+
+    for (int i = 0; i < 26; i++)
+        if (arr[i].empty())
+        {
+            arr[i] = sym;
+            return true;
+        }
+
+    return false;
+}
+
+bool is_terminal_token(const std::string &tok)
+{
+    if (tok.size() != 1)
+        return false;
+    char c = tok[0];
+    return (std::islower((unsigned char)c) ||
+            c == '(' || c == ')' || c == '+' || c == '*' || c == '-');
+}
+
+bool vn_contains(const std::string VN[26], const std::string &s)
+{
+    for (int i = 0; i < 26; i++)
+        if (VN[i] == s)
+            return true;
+    return false;
+}
+
+// Reads ONLY VN and VT from file
+bool read_VN_VT_from_file(const std::string &file, Symbols &sym)
+{
+    std::ifstream fin(file);
+    if (!fin.is_open())
+    {
+        std::cout << "Error: Cannot open file: " << file << "\n";
+        return false;
+    }
+
+    clear_arr(sym.VN, 26);
+    clear_arr(sym.VT, 26);
+
+    std::string line;
+    int lineNo = 0;
+
+    while (std::getline(fin, line))
+    {
+        lineNo++;
+        line = trim(line);
+        if (line.empty())
+            continue;
+        if (line[0] == '#')
+            continue;
+
+        // VN
+        if (line.rfind("VN:", 0) == 0 || line.rfind("VN=", 0) == 0)
+        {
+            size_t pos = line.find(':');
+            if (pos == std::string::npos)
+                pos = line.find('=');
+
+            std::stringstream ss(trim(line.substr(pos + 1)));
+            std::string tok;
+            while (ss >> tok)
+            {
+                if (tok.size() == 1 && std::isupper((unsigned char)tok[0]))
+                    add_unique_symbol(sym.VN, tok);
+                else
+                    std::cout << "[Line " << lineNo << "] Invalid VN symbol ignored: " << tok << "\n";
+            }
+            continue;
+        }
+
+        // VT
+        if (line.rfind("VT:", 0) == 0 || line.rfind("VT=", 0) == 0)
+        {
+            size_t pos = line.find(':');
+            if (pos == std::string::npos)
+                pos = line.find('=');
+
+            std::stringstream ss(trim(line.substr(pos + 1)));
+            std::string tok;
+            while (ss >> tok)
+            {
+                if (is_terminal_token(tok))
+                    add_unique_symbol(sym.VT, tok);
+                else
+                    std::cout << "[Line " << lineNo << "] Invalid VT symbol ignored: " << tok << "\n";
+            }
+            continue;
+        }
+    }
+
+    bool hasVN = false;
+    for (int i = 0; i < 26; i++)
+        if (!sym.VN[i].empty())
+        {
+            hasVN = true;
+            break;
+        }
+
+    if (!hasVN)
+    {
+        std::cout << "Error: VN is empty after reading the file.\n";
+        return false;
+    }
+
+    return true;
+}
+
+// Reset grammar + results (so we can load a new grammar safely)
+void reset_all(Symbols &sym)
+{
+    sym.P.clear();
+
+    clear_arr(sym.VN, 26);
+    clear_arr(sym.VT, 26);
+
+    clear_arr(sym.H, 60);
+    clear_arr(sym.VN2, 26);
+    clear_arr(sym.VT2, 26);
+    clear_arr(sym.inacc_syms, 60);
+    sym.sym_idx = 0;
+
+    sym.start_symbol.clear();
+}
+
+// Loads VN/VT (file or keyboard), then start symbol, then P (keyboard)
+bool load_grammar_interactive(Symbols &sym)
+{
+    reset_all(sym);
+
+    std::cout << "Load VN and VT from:\n";
+    std::cout << "  1) Keyboard input (any key)\n";
+    std::cout << "  2) File (VN and VT only) (2)\n";
+    std::cout << "Choose (1/2): ";
+
+    int mode = 1;
+    std::cin >> mode;
+
+    if (mode == 2)
+    {
+        std::cout << "Enter file name (example: symbols.txt): ";
+        std::string filename;
+        std::cin >> filename;
+
+        if (!read_VN_VT_from_file(filename, sym))
+        {
+            std::cout << "File reading failed.\n";
+            return false;
+        }
+
+        std::cout << "VN and VT successfully read from file.\n";
+        print_arr(sym.VN, 26, "VN");
+        print_arr(sym.VT, 26, "VT");
+    }
+    else
+    {
+        std::cout << "=== STEP 1: Initialize VN (non-terminals) ===\n";
+        std::cout << "Enter VN symbols (uppercase). Stop with an invalid character.\n";
+        init_VN(sym.VN);
+
+        std::cout << "\n=== STEP 2: Initialize VT (terminals) ===\n";
+        std::cout << "Enter VT symbols (lowercase and operators: ( ) + * -). Stop with an invalid character.\n";
+        init_VT(sym.VT);
+    }
+
+    // Start symbol
+    sym.start_symbol = sym.VN[0];
+    std::cout << "Start symbol: " << sym.start_symbol << std::endl;
+
+    // Productions
+    std::cout << "\n=== STEP 3: Initialize P (production rules) ===\n";
+    std::cout << "Enter productions manually.\n";
+    std::cout << "Note: you can type 'lambda' or 'λ' for the empty production.\n";
+    init_P(sym.VN, sym.VT, sym.P);
+
+    return true;
 }
